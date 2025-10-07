@@ -729,6 +729,10 @@ class Agent1:
         expiry_date = clean_text(expiry_date)
         address = clean_text(address)
 
+        # Generate unique PIN after successful verification
+        import random
+        pin = random.randint(100000, 999999)  # 6-digit PIN
+
         # Store data in Supabase
         data_stored = False
         try:
@@ -741,7 +745,8 @@ class Agent1:
                 "business_type": business_type or "",
                 "issue_date": issue_date,
                 "expiry_date": expiry_date,
-                "address": address
+                "address": address,
+                "pin": pin  # Store the generated PIN
             }, on_conflict=['name']).execute()
             data_stored = True
         except Exception as e:
@@ -756,6 +761,7 @@ class Agent1:
             "issue_date": issue_date,
             "expiry_date": expiry_date,
             "address": address,
+            "pin": pin,  # Include the generated PIN in the response
             "data_stored": data_stored
         }
     
@@ -855,6 +861,10 @@ class Agent1:
         expiry_date = clean_text(expiry_date)
         address = clean_text(address)
 
+        # Generate unique PIN after successful verification
+        import random
+        pin = random.randint(100000, 999999)  # 6-digit PIN
+
         # Store data in Supabase
         data_stored = False
         try:
@@ -867,7 +877,8 @@ class Agent1:
                 "business_type": business_type or "",
                 "issue_date": issue_date,
                 "expiry_date": expiry_date,
-                "address": address
+                "address": address,
+                "pin": pin  # Store the generated PIN
             }, on_conflict=['name']).execute()
             data_stored = True
         except Exception as e:
@@ -882,6 +893,7 @@ class Agent1:
             "issue_date": issue_date,
             "expiry_date": expiry_date,
             "address": address,
+            "pin": pin,  # Include the generated PIN in the response
             "data_stored": data_stored
         }
     
