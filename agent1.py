@@ -747,10 +747,12 @@ class Agent1:
                 "expiry_date": expiry_date,
                 "address": address,
                 "pin": pin  # Store the generated PIN
-            }, on_conflict=['aadhar']).execute()  # Use Aadhar as conflict key instead of name
+            }, on_conflict=['aadhar']).execute()
             data_stored = True
         except Exception as e:
             print(f"Warning: Failed to store data in database: {e}")
+            import traceback
+            traceback.print_exc()
 
         return {
             "status": "success",
