@@ -733,22 +733,31 @@ class Agent1:
         import random
         pin = random.randint(100000, 999999)  # 6-digit PIN
 
-        # Store data in Supabase
+        # Check if data already exists for this Aadhar number
         data_stored = False
         try:
-            self.supabase.table("verified_producers").upsert({
-                "aadhar": aadhar,
-                "name": producer_name,
-                "fssai_license_number": license_number,
-                "annual_income": income,
-                "certificate_type": actual_type,
-                "business_type": business_type or "",
-                "issue_date": issue_date,
-                "expiry_date": expiry_date,
-                "address": address,
-                "pin": pin  # Store the generated PIN
-            }, on_conflict=['aadhar']).execute()
-            data_stored = True
+            # First check if a record already exists with this Aadhar
+            existing_record = self.supabase.table("verified_producers").select("*").eq("aadhar", aadhar).execute()
+            
+            if existing_record.data:
+                # Record already exists, don't store again
+                print(f"Record already exists for Aadhar: {aadhar}")
+                data_stored = True  # Set to True since data is already stored
+            else:
+                # No existing record, proceed with upsert
+                self.supabase.table("verified_producers").upsert({
+                    "aadhar": aadhar,
+                    "name": producer_name,
+                    "fssai_license_number": license_number,
+                    "annual_income": income,
+                    "certificate_type": actual_type,
+                    "business_type": business_type or "",
+                    "issue_date": issue_date,
+                    "expiry_date": expiry_date,
+                    "address": address,
+                    "pin": pin  # Store the generated PIN
+                }, on_conflict=['aadhar']).execute()
+                data_stored = True
         except Exception as e:
             print(f"Warning: Failed to store data in database: {e}")
             import traceback
@@ -866,25 +875,37 @@ class Agent1:
         # Generate unique PIN after successful verification
         import random
         pin = random.randint(100000, 999999)  # 6-digit PIN
+        pin = random.randint(100000, 999999)  # 6-digit PIN
 
-        # Store data in Supabase
+        # Check if data already exists for this Aadhar number
         data_stored = False
         try:
-            self.supabase.table("verified_producers").upsert({
-                "aadhar": aadhar,
-                "name": producer_name,
-                "fssai_license_number": license_number,
-                "annual_income": income,
-                "certificate_type": actual_type,
-                "business_type": business_type or "",
-                "issue_date": issue_date,
-                "expiry_date": expiry_date,
-                "address": address,
-                "pin": pin  # Store the generated PIN
-            }, on_conflict=['aadhar']).execute()
-            data_stored = True
+            # First check if a record already exists with this Aadhar
+            existing_record = self.supabase.table("verified_producers").select("*").eq("aadhar", aadhar).execute()
+            
+            if existing_record.data:
+                # Record already exists, don't store again
+                print(f"Record already exists for Aadhar: {aadhar}")
+                data_stored = True  # Set to True since data is already stored
+            else:
+                # No existing record, proceed with upsert
+                self.supabase.table("verified_producers").upsert({
+                    "aadhar": aadhar,
+                    "name": producer_name,
+                    "fssai_license_number": license_number,
+                    "annual_income": income,
+                    "certificate_type": actual_type,
+                    "business_type": business_type or "",
+                    "issue_date": issue_date,
+                    "expiry_date": expiry_date,
+                    "address": address,
+                    "pin": pin  # Store the generated PIN
+                }, on_conflict=['aadhar']).execute()
+                data_stored = True
         except Exception as e:
             print(f"Warning: Failed to store data in database: {e}")
+            import traceback
+            traceback.print_exc()
 
         return {
             "status": "success",

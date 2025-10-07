@@ -22,7 +22,7 @@ def test_verify_with_valid_fssai():
         # Prepare the request data
         data = {
             "aadhar": "442125846000",
-            "name": "KINGS ROLL",
+            "name": "KINS ROLL",
             "fssai_pdf": pdf_base64,
             "annual_income": 11000
         }
