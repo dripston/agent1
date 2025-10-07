@@ -21,6 +21,20 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+@app.route('/', methods=['GET'])
+def home():
+    """Root endpoint"""
+    return jsonify({
+        "message": "Welcome to Sadapurne Agent1 API",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "GET /health",
+            "verify": "POST /verify",
+            "get_producer": "GET /producers/<aadhar>",
+            "get_all_producers": "GET /producers"
+        }
+    }), 200
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
