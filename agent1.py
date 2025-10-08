@@ -937,11 +937,32 @@ class Agent1:
         format_verification = self.check_fssai_format_with_pdf_data(fssai_pdf_data)
 
         if format_verification["status"] != "verified":
+            # Extract what we could for detailed error response
+            extracted_info = {
+                "extracted_business_name": self.extract_name_from_fssai(fssai_text),
+                "extracted_fssai_number": self.extract_license_number(fssai_text),
+                "extracted_certificate_type": actual_type,
+                "extracted_business_type": self.extract_business_type(fssai_text),
+                "extracted_address": self.extract_address(fssai_text),
+                "extracted_issue_date": self.extract_issue_date(fssai_text),
+                "extracted_expiry_date": self.extract_expiry_date(fssai_text)
+            }
             return {
                 "status": "failed",
                 "stage": "format_verification",
                 "message": format_verification["message"],
-                "issues": format_verification["issues"]
+                "issues": format_verification["issues"],
+                "document_format_check": {
+                    "total_checks": len(format_verification.get("issues", [])),
+                    "passed_checks": 0,
+                    "failed_checks": len(format_verification.get("issues", []))
+                },
+                "extracted_document_info": extracted_info,
+                "provided_data": {
+                    "name": producer_name,
+                    "annual_income": income,
+                    "aadhar": aadhar
+                }
             }
 
         # All checks passed
