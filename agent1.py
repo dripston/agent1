@@ -763,6 +763,16 @@ class Agent1:
             import traceback
             traceback.print_exc()
 
+        # Get the stored data to return to the client
+        stored_data = None
+        if data_stored:
+            try:
+                stored_record = supabase.table("verified_producers").select("*").eq("aadhar", aadhar).execute()
+                if stored_record.data:
+                    stored_data = stored_record.data[0]
+            except Exception as e:
+                print(f"Warning: Could not retrieve stored data: {e}")
+
         return {
             "status": "success",
             "message": "Producer verified successfully",
@@ -773,7 +783,8 @@ class Agent1:
             "expiry_date": expiry_date,
             "address": address,
             "pin": pin,  # Include the generated PIN in the response
-            "data_stored": data_stored
+            "data_stored": data_stored,
+            "stored_data": stored_data  # Include the complete stored record
         }
     
     def verify_producer_with_pdf_data(self, producer_name: str, fssai_pdf_data: bytes, income: float, aadhar: str) -> Dict:
