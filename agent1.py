@@ -639,11 +639,31 @@ class Agent1:
         name_verification = self.verify_names(producer_name, fssai_document_path)
 
         if name_verification["status"] != "verified":
+            # Extract what we could from the document for detailed error response
+            fssai_text = name_verification.get("fssai_text", "")
+            extracted_info = {}
+            if fssai_text:
+                extracted_info = {
+                    "extracted_business_name": self.extract_name_from_fssai(fssai_text),
+                    "extracted_fssai_number": self.extract_license_number(fssai_text),
+                    "extracted_certificate_type": self.extract_certificate_type(fssai_text),
+                    "extracted_business_type": self.extract_business_type(fssai_text),
+                    "extracted_address": self.extract_address(fssai_text),
+                    "extracted_issue_date": self.extract_issue_date(fssai_text),
+                    "extracted_expiry_date": self.extract_expiry_date(fssai_text)
+                }
+
             return {
                 "status": "failed",
                 "stage": "name_verification",
                 "message": name_verification["message"],
-                "details": name_verification["details"]
+                "details": name_verification["details"],
+                "extracted_document_info": extracted_info,
+                "provided_data": {
+                    "name": producer_name,
+                    "annual_income": income,
+                    "aadhar": aadhar
+                }
             }
 
         # Step 2: Extract certificate type from document
@@ -652,15 +672,35 @@ class Agent1:
             return {
                 "status": "failed",
                 "stage": "document_read",
-                "message": "Could not read FSSAI document text"
+                "message": "Could not read FSSAI document text",
+                "provided_data": {
+                    "name": producer_name,
+                    "annual_income": income,
+                    "aadhar": aadhar
+                }
             }
 
         actual_type = self.extract_certificate_type(fssai_text)
         if not actual_type:
+            # Extract what we could for detailed error response
+            extracted_info = {
+                "extracted_business_name": self.extract_name_from_fssai(fssai_text),
+                "extracted_fssai_number": self.extract_license_number(fssai_text),
+                "extracted_business_type": self.extract_business_type(fssai_text),
+                "extracted_address": self.extract_address(fssai_text),
+                "extracted_issue_date": self.extract_issue_date(fssai_text),
+                "extracted_expiry_date": self.extract_expiry_date(fssai_text)
+            }
             return {
                 "status": "failed",
                 "stage": "certificate_type",
-                "message": "Certificate type not found in document"
+                "message": "Certificate type not found in document",
+                "extracted_document_info": extracted_info,
+                "provided_data": {
+                    "name": producer_name,
+                    "annual_income": income,
+                    "aadhar": aadhar
+                }
             }
 
         # Extract business type
@@ -674,27 +714,83 @@ class Agent1:
 
         # Step 4: Check if certificate type matches income requirement
         if expected_type == 'registration' and actual_type != 'registration':
+            extracted_info = {
+                "extracted_business_name": self.extract_name_from_fssai(fssai_text),
+                "extracted_fssai_number": self.extract_license_number(fssai_text),
+                "extracted_certificate_type": actual_type,
+                "extracted_business_type": self.extract_business_type(fssai_text),
+                "extracted_address": self.extract_address(fssai_text),
+                "extracted_issue_date": self.extract_issue_date(fssai_text),
+                "extracted_expiry_date": self.extract_expiry_date(fssai_text)
+            }
             return {
                 "status": "failed",
                 "stage": "certificate_match",
-                "message": f"Based on income (₹{income:,.0f}), registration certificate expected, but document shows {actual_type} license"
+                "message": f"Based on income (₹{income:,.0f}), registration certificate expected, but document shows {actual_type} license",
+                "expected_certificate_type": expected_type,
+                "actual_certificate_type": actual_type,
+                "income_based_requirement": f"Income ₹{income:,.0f} requires {expected_type}",
+                "extracted_document_info": extracted_info,
+                "provided_data": {
+                    "name": producer_name,
+                    "annual_income": income,
+                    "aadhar": aadhar
+                }
             }
         elif expected_type == 'license' and actual_type == 'registration':
+            extracted_info = {
+                "extracted_business_name": self.extract_name_from_fssai(fssai_text),
+                "extracted_fssai_number": self.extract_license_number(fssai_text),
+                "extracted_certificate_type": actual_type,
+                "extracted_business_type": self.extract_business_type(fssai_text),
+                "extracted_address": self.extract_address(fssai_text),
+                "extracted_issue_date": self.extract_issue_date(fssai_text),
+                "extracted_expiry_date": self.extract_expiry_date(fssai_text)
+            }
             return {
                 "status": "failed",
                 "stage": "certificate_match",
-                "message": f"Based on income (₹{income:,.0f}), state or central license expected, but document shows registration certificate"
+                "message": f"Based on income (₹{income:,.0f}), state or central license expected, but document shows registration certificate",
+                "expected_certificate_type": expected_type,
+                "actual_certificate_type": actual_type,
+                "income_based_requirement": f"Income ₹{income:,.0f} requires {expected_type}",
+                "extracted_document_info": extracted_info,
+                "provided_data": {
+                    "name": producer_name,
+                    "annual_income": income,
+                    "aadhar": aadhar
+                }
             }
 
         # Step 5: Check document format
         format_verification = self.check_fssai_format(fssai_document_path)
 
         if format_verification["status"] != "verified":
+            extracted_info = {
+                "extracted_business_name": self.extract_name_from_fssai(fssai_text),
+                "extracted_fssai_number": self.extract_license_number(fssai_text),
+                "extracted_certificate_type": actual_type,
+                "extracted_business_type": self.extract_business_type(fssai_text),
+                "extracted_address": self.extract_address(fssai_text),
+                "extracted_issue_date": self.extract_issue_date(fssai_text),
+                "extracted_expiry_date": self.extract_expiry_date(fssai_text)
+            }
             return {
                 "status": "failed",
                 "stage": "format_verification",
                 "message": format_verification["message"],
-                "issues": format_verification["issues"]
+                "issues": format_verification["issues"],
+                "document_format_check": {
+                    "total_checks": len(format_verification.get("issues", [])),
+                    "passed_checks": 0,
+                    "failed_checks": len(format_verification.get("issues", []))
+                },
+                "extracted_document_info": extracted_info,
+                "provided_data": {
+                    "name": producer_name,
+                    "annual_income": income,
+                    "aadhar": aadhar
+                }
             }
 
         # All checks passed
