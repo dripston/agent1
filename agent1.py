@@ -357,12 +357,7 @@ class Agent1:
             result["issues"] = ["Could not read FSSAI document"]
             return result
         
-        # Check for required number before format validation
-        if "20819019000744" in fssai_text:
-            result["status"] = "verified"
-            result["message"] = "FSSAI document contains required number"
-            result["issues"] = []
-            return result
+        # Note: Removed shortcut that bypassed expiry checking for specific FSSAI number
 
         # Fix PDF text extraction issues with dates
         fssai_text = self._fix_pdf_dates(fssai_text)
@@ -1026,7 +1021,20 @@ class Agent1:
             "expiry_date": expiry_date,
             "address": address,
             "pin": pin,  # Include the generated PIN in the response
-            "data_stored": data_stored
+            "data_stored": data_stored,
+            # Include all stored data fields
+            "stored_producer_data": {
+                "aadhar": aadhar,
+                "name": producer_name,
+                "fssai_license_number": license_number,
+                "annual_income": income,
+                "certificate_type": actual_type,
+                "business_type": business_type,
+                "issue_date": issue_date,
+                "expiry_date": expiry_date,
+                "address": address,
+                "pin": pin
+            }
         }
     
     def start_conversation(self):
