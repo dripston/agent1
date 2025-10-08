@@ -3,6 +3,7 @@ import json
 import base64
 import tempfile
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from agent1 import Agent1
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -12,6 +13,9 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app)
 
 # Initialize Agent1
 agent1 = Agent1()

@@ -15,14 +15,14 @@ def test_verify_with_valid_fssai():
     
     try:
         # Read a real FSSAI certificate PDF
-        with open("../442125846-FSSAI-CERTIFICATE.pdf", "rb") as pdf_file:
+        with open("../442125846-FSSAI-CERTIFICATE-1.pdf", "rb") as pdf_file:
             pdf_data = pdf_file.read()
             pdf_base64 = base64.b64encode(pdf_data).decode('utf-8')
         
         # Prepare the request data
         data = {
             "aadhar": "442125846000",
-            "name": "KINS ROLL",
+            "name": "KINgS ROLL",
             "fssai_pdf": pdf_base64,
             "annual_income": 11000
         }
