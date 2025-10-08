@@ -46,45 +46,81 @@ def health_check():
 
 @app.route('/verify', methods=['POST'])
 def verify_producer():
-    """Verify producer endpoint"""
+    """Verify producer endpoint - handles FormData from React app"""
     try:
-        # Get JSON data from request
-        data = request.get_json()
-        
-        # Validate required fields
-        required_fields = ['aadhar', 'name', 'fssai_pdf', 'annual_income']
-        for field in required_fields:
-            if field not in data:
+        # Handle FormData (multipart/form-data) instead of JSON
+        if 'aadhaar' in request.form:
+            # FormData from React app
+            aadhar = request.form.get('aadhaar', '').strip()
+            name = request.form.get('business_name', '').strip()
+            annual_income_str = request.form.get('annual_income', '').strip()
+
+            # Get the uploaded file
+            fssai_file = request.files.get('fssai_certificate')
+            if not fssai_file:
                 return jsonify({
                     "status": "failed",
                     "stage": "input_validation",
-                    "message": f"Missing required field: {field}"
+                    "message": "Missing FSSAI certificate file"
                 }), 400
-        
-        aadhar = data['aadhar']
-        name = data['name']
-        fssai_pdf_base64 = data['fssai_pdf']
-        annual_income = data['annual_income']
-        
+
+            # Read file data
+            pdf_data = fssai_file.read()
+
+        else:
+            # Fallback to JSON (for backward compatibility)
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    "status": "failed",
+                    "stage": "input_validation",
+                    "message": "No data provided. Expected FormData or JSON."
+                }), 400
+
+            # Validate required fields for JSON
+            required_fields = ['aadhar', 'name', 'fssai_pdf', 'annual_income']
+            for field in required_fields:
+                if field not in data:
+                    return jsonify({
+                        "status": "failed",
+                        "stage": "input_validation",
+                        "message": f"Missing required field: {field}"
+                    }), 400
+
+            aadhar = data['aadhar']
+            name = data['name']
+            fssai_pdf_base64 = data['fssai_pdf']
+            annual_income_str = str(data['annual_income'])
+
+            # Decode base64 PDF data for JSON requests
+            try:
+                pdf_data = base64.b64decode(fssai_pdf_base64)
+            except Exception as e:
+                return jsonify({
+                    "status": "failed",
+                    "stage": "input_validation",
+                    "message": f"Failed to decode FSSAI PDF data: {str(e)}"
+                }), 400
+
         # Validate Aadhar number
-        if not aadhar or not isinstance(aadhar, str) or len(aadhar.strip()) == 0:
+        if not aadhar or len(aadhar.strip()) == 0:
             return jsonify({
                 "status": "failed",
                 "stage": "input_validation",
                 "message": "Invalid Aadhar number"
             }), 400
-        
+
         # Validate name
-        if not name or not isinstance(name, str) or len(name.strip()) == 0:
+        if not name or len(name.strip()) == 0:
             return jsonify({
                 "status": "failed",
                 "stage": "input_validation",
                 "message": "Invalid name"
             }), 400
-        
+
         # Validate annual income
         try:
-            income = float(annual_income)
+            income = float(annual_income_str)
             if income < 0:
                 return jsonify({
                     "status": "failed",
@@ -97,28 +133,10 @@ def verify_producer():
                 "stage": "input_validation",
                 "message": "Invalid annual income format"
             }), 400
-        
-        # Validate and decode PDF data
-        if not fssai_pdf_base64 or not isinstance(fssai_pdf_base64, str):
-            return jsonify({
-                "status": "failed",
-                "stage": "input_validation",
-                "message": "Invalid FSSAI PDF data"
-            }), 400
-        
-        try:
-            # Decode base64 PDF data
-            pdf_data = base64.b64decode(fssai_pdf_base64)
-        except Exception as e:
-            return jsonify({
-                "status": "failed",
-                "stage": "input_validation",
-                "message": f"Failed to decode FSSAI PDF data: {str(e)}"
-            }), 400
-        
+
         # Perform verification using Agent1 with PDF data
         result = agent1.verify_producer_with_pdf_data(name, pdf_data, income, aadhar)
-        
+
         # Return result as JSON
         return jsonify(result), 200 if result["status"] == "success" else 400
                 
